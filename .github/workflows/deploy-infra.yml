@@ -66,6 +66,6 @@ jobs:
             scope: resourcegroup
             failOnStdErr: false
             resourceGroupName: ${{ env.resource-group }}
-            template: src\infra\main.bicep
+            template: main.bicep
             parameters: dev.bicepparam
   

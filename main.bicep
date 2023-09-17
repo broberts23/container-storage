@@ -30,7 +30,6 @@ resource vnet 'Microsoft.Network/virtualNetworks@2021-05-01' = {
 resource aks 'Microsoft.ContainerService/managedClusters@2023-07-02-preview' = {
   name: clusterName
   location: location
-
   identity: {
     type: 'SystemAssigned'
   }

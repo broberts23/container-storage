@@ -52,6 +52,39 @@ For simplicity we'll contain the code in a single main.bicep but split the param
 
 ```
 
-The nodeSize SKU must be 
-
 To use Azure Container Storage with Azure managed disks, your AKS cluster should have a node pool of at least three general purpose VMs such as standard_d4s_v5 for the cluster nodes, each with a minimum of four virtual CPUs (vCPUs).
+
+## Connecting to the AKS cluster
+
+After the cluster has been deployed, we need to connect to it to install Azure Container Storage. Instead of using Azure CLI and kubectl, we'll use the Kubernetes extension for VS Code. This extension allows us to easily connect to an AKS cluster and run commands against it from within VS Code.
+
+Find your new cluster under the CLOUD pane in VS Code and right click on it. Select "Merge into KubeConfig" from the context menu. Then refresh the top CLUSTERS pane if your cluster is not automatically selected.
+
+![Alt text](image-1.png)
+
+After connecting to the cluster the mode important thing to validate is the label `acstor.azure.com/io-engine=acstor` has been added to the nodes
+
+![Alt text](image.png)
+
+## Installing Azure Container Storage
+
+Replace <cluster-name> and <resource-group> with your own values. The <name> value can be whatever you want; it's just a label for the extension you're installing.
+
+```bash
+az k8s-extension create --cluster-type managedClusters --cluster-name <cluster name> --resource-group <resource group name> --name <name of extension> --extension-type microsoft.azurecontainerstorage --scope cluster --release-train stable --release-namespace acstor
+```
+
+If prompted to install k8s-extension extension, select Y.
+If the recieve a warning that 'Microsoft.KubernetesConfiguration' provider has not been registered, use the following command to register it:
+
+```bash
+az provider register --namespace Microsoft.Kubernetes
+az provider register --namespace Microsoft.KubernetesConfiguration
+az provider register --namespace Microsoft.ExtendedLocation
+```
+
+Installation takes 10-15 minutes to complete
+
+We can verify the installation by running the following command:
+
+```bash

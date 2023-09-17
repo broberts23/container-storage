@@ -37,6 +37,7 @@ resource aks 'Microsoft.ContainerService/managedClusters@2023-07-02-preview' = {
   properties: {
     kubernetesVersion: kubernetesVersion
     dnsPrefix: clusterName
+    enableRBAC: true
     agentPoolProfiles: [
       {
         name: 'agentpool'
@@ -59,22 +60,5 @@ resource aks 'Microsoft.ContainerService/managedClusters@2023-07-02-preview' = {
     }
   }
 }
-
-@description('This is the built-in Contributor role. See https://docs.microsoft.com/azure/role-based-access-control/built-in-roles')
-resource Contributor 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = {
-  name: 'b24988ac-6180-42a0-ab88-20f7382dd24c'
-}
-
-@description('Assign the Contributor role to the Cluster')
-resource roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(aks.id)
-  properties: {
-    principalId: aks.identity.principalId
-    roleDefinitionId: Contributor.id
-    principalType: 'ServicePrincipal'
-  }
-  scope: aks
-}
-
 
 output controlPlaneFQDN string = aks.properties.fqdn

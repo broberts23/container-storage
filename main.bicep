@@ -48,6 +48,7 @@ resource aks 'Microsoft.ContainerService/managedClusters@2023-07-02-preview' = {
         vmSize: nodeSettings.nodeSize
         osType: nodeSettings.osType
         osSKU: nodeSettings.osSKU
+        mode: 'System'
         vnetSubnetID: resourceId('Microsoft.Network/virtualNetworks/subnets', vnet.name, '${clusterName}-snet')
       }
     ]

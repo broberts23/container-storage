@@ -53,3 +53,5 @@ For simplicity we'll contain the code in a single main.bicep but split the param
 ```
 
 The nodeSize SKU must be 
+
+To use Azure Container Storage with Azure managed disks, your AKS cluster should have a node pool of at least three general purpose VMs such as standard_d4s_v5 for the cluster nodes, each with a minimum of four virtual CPUs (vCPUs).

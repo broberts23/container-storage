@@ -33,6 +33,7 @@ param nodeSubnetPrefix = '10.0.2.0/24'
 @description ('The name of the AKS cluster')
 param nodeSettings = {
   nodeCount: 3
+  //You must choose a VM type that supports Azure premium storage and a minimum of 4 vCPUs.
   nodeSize: 'Standard_D4s_v5'
   osType: 'Linux'
   osSKU: 'AzureLinux'

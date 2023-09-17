@@ -16,6 +16,17 @@ Container Storage Pools are the basic building blocks of Azure Container Storage
 
 Read more here: https://learn.microsoft.com/en-us/azure/storage/container-storage/container-storage-introduction
 
+and here: https://techcommunity.microsoft.com/t5/azure-storage-blog/azure-container-storage-in-public-preview/ba-p/3819246
+
+## What are the benefits of using Azure Container Storage?
+
+1. Lowering the total cost of ownership by enabling shared provisioning of capacity and performance on a storage pool, which can be leveraged by multiple volumes.
+
+1. Rapid scale-out of stateful pods using remote network protocols like NVME-oF and iSCSI to mount PV, enabling effortless scaling on AKS across Compute and Storage.
+
+1. Simplified consistent volume management interface backed by local and remote storage options enabling customers to allocate and use storage via the Kubernetes control plane.
+
+1. Fully integrated day-2 experiences, including data protection, cross-cluster recovery, and observability providing operational simplicity for customers who need to create customer scripts or stitch together disparate tools today.
 
 ## Supported storage types
 
@@ -39,9 +50,6 @@ For simplicity we'll contain the code in a single main.bicep but split the param
 
 ```bicep
 
+```
 
-
-
-
-
-
+The nodeSize SKU must be 

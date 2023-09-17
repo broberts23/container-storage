@@ -15,6 +15,15 @@ param location = 'australiaeast'
 @description ('The name of the AKS cluster resoorces')
 param clusterName = '${prefix}myAKSCluster'
 
+@description ('The version of Kubernetes to use')
+@allowed([
+  '1.28.0'
+  '1.27.3'
+  '1.27.1'
+  '1.26.6'
+])
+param kubernetesVersion = '1.28.0'
+
 @description ('Address space for the virtual network')
 param vnetAddressSpace = [
   '10.0.0.0/16'

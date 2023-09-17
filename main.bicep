@@ -1,5 +1,6 @@
 param location string
 param clusterName string
+param kubernetesVersion string
 param vnetAddressSpace array
 param nodeSubnetPrefix string
 param nodeSettings object
@@ -34,7 +35,7 @@ resource aks 'Microsoft.ContainerService/managedClusters@2023-07-02-preview' = {
     type: 'SystemAssigned'
   }
   properties: {
-    kubernetesVersion: '1.28.3'
+    kubernetesVersion: kubernetesVersion
     dnsPrefix: clusterName
     agentPoolProfiles: [
       {

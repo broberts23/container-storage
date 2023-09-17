@@ -61,4 +61,15 @@ resource aks 'Microsoft.ContainerService/managedClusters@2023-07-02-preview' = {
   }
 }
 
+@description('Create the role assignment for the AKS cluster')
+resource rbac 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(aks.id)
+  scope: resourceGroup()
+  properties: {
+    roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', 'b24988ac-6180-42a0-ab88-20f7382dd24c')
+    principalId: aks.identity.principalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
 output controlPlaneFQDN string = aks.properties.fqdn

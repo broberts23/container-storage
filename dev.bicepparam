@@ -22,7 +22,7 @@ param clusterName = '${prefix}myAKSCluster'
   '1.27.1'
   '1.26.6'
 ])
-param kubernetesVersion = '1.28.0'
+param kubernetesVersion = '1.27.3'
 
 @description ('Address space for the virtual network')
 param vnetAddressSpace = [

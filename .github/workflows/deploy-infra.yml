@@ -1,0 +1,71 @@
+on:
+    pull_request: 
+  
+permissions:
+    id-token: write
+    contents: read
+  
+env:
+    resource-group: myAksDemo # name of the Azure resource group
+  
+jobs:
+    bicep-whatif:
+      name: 'Bicep What-If'
+      runs-on: ubuntu-latest
+      steps:
+        - name: Checkout code
+          uses: actions/checkout@v3
+  
+        - name: 'Az CLI login'
+          uses: azure/login@v1
+          with:
+            client-id: ${{ secrets.AZURE_CLIENT_ID }}
+            tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+            subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        
+        - name: Upgrade Az Bicep
+          run: az bicep upgrade
+
+        # Run what-if deployment
+        - name: What-If
+          uses: azure/arm-deploy@v1
+          with:
+            scope: resourcegroup
+            failOnStdErr: false
+            resourceGroupName: ${{ env.resource-group }}
+            template: main.bicep
+            parameters: dev.bicepparam
+            additionalArguments: --what-if
+  
+    bicep-deploy:
+      name: 'Bicep Deploy'
+      environment: dev
+      runs-on: ubuntu-latest
+      needs: [bicep-whatif]
+      
+      steps:
+        # Checkout the repository to the GitHub Actions runner
+        - name: Checkout
+          uses: actions/checkout@v3
+  
+        # Authenticate to Az CLI using OIDC
+        - name: 'Az CLI login'
+          uses: azure/login@v1
+          with:
+            client-id: ${{ secrets.AZURE_CLIENT_ID }}
+            tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+            subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+        - name: Upgrade Az Bicep
+          run: az bicep upgrade
+
+        # Deploy
+        - name: Deploy
+          uses: azure/arm-deploy@v1
+          with:
+            scope: resourcegroup
+            failOnStdErr: false
+            resourceGroupName: ${{ env.resource-group }}
+            template: src\infra\main.bicep
+            parameters: dev.bicepparam
+  

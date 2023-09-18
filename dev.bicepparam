@@ -11,7 +11,7 @@ param location = 'australiaeast'
 @minLength(5)
 @maxLength(24)
 @description ('The name of the AKS cluster resoorces')
-param clusterName = ''
+param clusterName = 'placeholder'
 
 @description ('The name of the AKS cluster')
 param nodeSettings = {

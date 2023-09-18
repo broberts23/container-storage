@@ -290,7 +290,7 @@ spec:
           name: azurediskpv
 ```
 
-Fio (Flexible I/O Tester) is a benchmarking and workload simulation. It supports many different types of I/O engines, including asynchronous I/O, mmap, and POSIX AIO. It also supports multiple threads and multiple files per thread.
+Fio (Flexible I/O Tester) is a benchmarking and workload simulation tool. It supports many different types of I/O engines, including asynchronous I/O, mmap, and POSIX AIO. It also supports multiple threads and multiple files per thread.
 
 ![Alt text](image-6.png)
 
@@ -301,6 +301,10 @@ Beautiful! 😍
 We can also see the disk in the Azure portal under the cluster managed resource group:
 
 ![Alt text](image-7.png)
+
+Being an Azure managed disk, we also manage the DR and backup of the disk. We can also take snapshots of the disk!
+
+This is just a small taste of what Azure Container Storage can do. There are many more features and capabilities that I didn't cover in this blog post. If you want to learn more about Azure Container Storage, check out the documentation here: https://docs.microsoft.com/en-us/azure/container-storage/
 
 ## Conclusion
 

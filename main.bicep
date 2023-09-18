@@ -1,5 +1,5 @@
 param location string
-param clusterName string
+param clusterName string = ''
 param nodeSettings object
 
 @description('Create the AKS cluster')

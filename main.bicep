@@ -1,6 +1,7 @@
-param location string
-param clusterName string = ''
-param nodeSettings object
+param location string = resourceGroup().location
+param clusterName string
+param nodeCount int
+param nodeSize string
 
 @description('Create the AKS cluster')
 resource aks 'Microsoft.ContainerService/managedClusters@2023-07-02-preview' = {
@@ -18,8 +19,8 @@ resource aks 'Microsoft.ContainerService/managedClusters@2023-07-02-preview' = {
         nodeLabels: {
           'acstor.azure.com/io-engine': 'acstor'
         }
-        count: nodeSettings.nodeCount
-        vmSize: nodeSettings.nodeSize
+        count: nodeCount
+        vmSize: nodeSize
         mode: 'System'
       }
     ]

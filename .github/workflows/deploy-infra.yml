@@ -7,7 +7,9 @@ permissions:
   
 env:
     resource-group: myAksDemo # name of the Azure resource group
-    cluster-name: dev-myAksCluster-01 # name of the AKS cluster
+    clusterName: dev-myAksCluster-01 # name of the AKS cluster
+    nodeCount: 3 # number of nodes in the cluster
+    nodeSize: Standard_D4s_v5 # You must choose a VM type that supports Azure premium storage and a minimum of 4 vCPUs.
   
 jobs:
     bicep-whatif:
@@ -35,7 +37,7 @@ jobs:
             failOnStdErr: false
             resourceGroupName: ${{ env.resource-group }}
             template: main.bicep
-            parameters: 'dev.bicepparam clusterName=${{ env.cluster-name }}'
+            parameters: 'clusterName=${{ env.clusterName }} nodeCount=${{ env.nodeCount }} nodeSize=${{ env.nodeSize }}'
             additionalArguments: --what-if
   
     bicep-deploy:
@@ -68,13 +70,13 @@ jobs:
             failOnStdErr: false
             resourceGroupName: ${{ env.resource-group }}
             template: main.bicep
-            parameters: 'dev.bicepparam  clusterName=${{ env.cluster-name }}'
+            parameters: 'dev.bicepparam  clusterName=${{ env.clusterName }}'
 
         - name: RBAC Assignment
           uses: azure/cli@v1
           with:
             inlineScript: |
-              export AKS_MI_OBJECT_ID=$(az aks show --name ${{ env.cluster-name }} --resource-group ${{ env.resource-group }} --query "identityProfile.kubeletidentity.objectId" -o tsv) 
-              export AKS_NODE_RG=$(az aks show --name ${{ env.cluster-name }} --resource-group ${{ env.resource-group }} --query "nodeResourceGroup" -o tsv)
+              export AKS_MI_OBJECT_ID=$(az aks show --name ${{ env.clusterName }} --resource-group ${{ env.resource-group }} --query "identityProfile.kubeletidentity.objectId" -o tsv) 
+              export AKS_NODE_RG=$(az aks show --name ${{ env.clusterName }} --resource-group ${{ env.resource-group }} --query "nodeResourceGroup" -o tsv)
               az role assignment create --assignee $AKS_MI_OBJECT_ID --role "Contributor" --resource-group "$AKS_NODE_RG"
   

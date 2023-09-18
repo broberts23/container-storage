@@ -2,9 +2,9 @@
 
 👋 Hey there, fellow techies! Are you tired of dealing with the headache of managing storage for your container workloads? 😩 Well, fear not! Azure Container Storage is here to save the day! 🦸‍♂️💾
 
-In this blog post, we'll dive into the world of Azure Container Storage and explore how it can make your life as a developer so much easier. 🤓 We'll cover everything from the basics of container storage to advanced features like encryption and access policies. 🔒
+In this blog post, we'll dive into the world of Azure Container Storage and explore how it can make your so much easier. 🤓 We'll cover everything from the basics of container storage and provide the instruction to deploy Azure Container Storage on an AKS cluster.
 
-So sit back, relax, and let's take a journey through the wonderful world of Azure Container Storage! 🚀
+Let's take a journey through the wonderful world of Azure Container Storage! 🚀
 
 ## What is Azure Container Storage?
 
@@ -46,12 +46,13 @@ Before we can start using Azure Container Storage, we need to create the underly
 
 https://github.com/broberts23/container-storage
 
-For simplicity we'll contain the code in a single main.bicep but split the parameters into a separate .bi file. This will allow us to easily change the parameters without having to modify the main file.
+For simplicity we'll contain the code in a single main.bicep and inject the paramater values from the pipeline. This will allow us to easily change the parameters without having to modify the main file.
 
 ```bicep
-param location string
+param location string = resourceGroup().location
 param clusterName string
-param nodeSettings object
+param nodeCount int
+param nodeSize string
 
 @description('Create the AKS cluster')
 resource aks 'Microsoft.ContainerService/managedClusters@2023-07-02-preview' = {
@@ -69,8 +70,8 @@ resource aks 'Microsoft.ContainerService/managedClusters@2023-07-02-preview' = {
         nodeLabels: {
           'acstor.azure.com/io-engine': 'acstor'
         }
-        count: nodeSettings.nodeCount
-        vmSize: nodeSettings.nodeSize
+        count: nodeCount
+        vmSize: nodeSize
         mode: 'System'
       }
     ]
@@ -78,7 +79,97 @@ resource aks 'Microsoft.ContainerService/managedClusters@2023-07-02-preview' = {
 }
 
 output controlPlaneFQDN string = aks.properties.fqdn
+
 ```
+
+I'll be deploying the custer and performing the RBAC assignment using GitHub Actions. You'll need to create a service principal and store the credentials in GitHub secrets. You'll also need to create a resource group. The workflow file is below:
+
+You can also find all the code im my GitHub repo.
+
+```yaml
+on:
+    pull_request: 
+  
+permissions:
+    id-token: write
+    contents: read
+  
+env:
+    resource-group: myAksDemo # name of the Azure resource group
+    clusterName: dev-myAksCluster-01 # name of the AKS cluster
+    nodeCount: 3 # number of nodes in the cluster
+    nodeSize: Standard_D4s_v5 # You must choose a VM type that supports Azure premium storage and a minimum of 4 vCPUs.
+  
+jobs:
+    bicep-whatif:
+      name: 'Bicep What-If'
+      runs-on: ubuntu-latest
+      steps:
+        - name: Checkout code
+          uses: actions/checkout@v3
+  
+        - name: 'Az CLI login'
+          uses: azure/login@v1
+          with:
+            client-id: ${{ secrets.AZURE_CLIENT_ID }}
+            tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+            subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        
+        - name: Upgrade Az Bicep
+          run: az bicep upgrade
+
+        # Run what-if deployment
+        - name: What-If
+          uses: azure/arm-deploy@v1
+          with:
+            scope: resourcegroup
+            failOnStdErr: false
+            resourceGroupName: ${{ env.resource-group }}
+            template: main.bicep
+            parameters: 'clusterName=${{ env.clusterName }} nodeCount=${{ env.nodeCount }} nodeSize=${{ env.nodeSize }}'
+            additionalArguments: --what-if
+  
+    bicep-deploy:
+      name: 'Bicep Deploy'
+      environment: dev
+      runs-on: ubuntu-latest
+      needs: [bicep-whatif]
+      
+      steps:
+        # Checkout the repository to the GitHub Actions runner
+        - name: Checkout
+          uses: actions/checkout@v3
+  
+        # Authenticate to Az CLI using OIDC
+        - name: 'Az CLI login'
+          uses: azure/login@v1
+          with:
+            client-id: ${{ secrets.AZURE_CLIENT_ID }}
+            tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+            subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+        - name: Upgrade Az Bicep
+          run: az bicep upgrade
+
+        # Deploy
+        - name: Deploy
+          uses: azure/arm-deploy@v1
+          with:
+            scope: resourcegroup
+            failOnStdErr: false
+            resourceGroupName: ${{ env.resource-group }}
+            template: main.bicep
+            parameters: 'clusterName=${{ env.clusterName }} nodeCount=${{ env.nodeCount }} nodeSize=${{ env.nodeSize }}'
+
+        # Assign the default AKS managed identity the role of Contributor on the managed resource group
+        - name: RBAC Assignment
+          uses: azure/cli@v1
+          with:
+            inlineScript: |
+              export AKS_MI_OBJECT_ID=$(az aks show --name ${{ env.clusterName }} --resource-group ${{ env.resource-group }} --query "identityProfile.kubeletidentity.objectId" -o tsv) 
+              export AKS_NODE_RG=$(az aks show --name ${{ env.clusterName }} --resource-group ${{ env.resource-group }} --query "nodeResourceGroup" -o tsv)
+              az role assignment create --assignee $AKS_MI_OBJECT_ID --role "Contributor" --resource-group "$AKS_NODE_RG"
+  ```
 
 To use Azure Container Storage with Azure managed disks, your AKS cluster should have a node pool of at least three general purpose VMs such as standard_d4s_v5 for the cluster nodes, each with a minimum of four virtual CPUs (vCPUs).
 
@@ -111,7 +202,7 @@ az provider register --namespace Microsoft.KubernetesConfiguration
 az provider register --namespace Microsoft.ExtendedLocation
 ```
 
-Installation takes 10-15 minutes to complete
+The installation takes 10-15 minutes to complete
 
 Review the JSON response and verify the "provisioningState" is "Succeeded".
 

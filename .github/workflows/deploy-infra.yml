@@ -70,7 +70,7 @@ jobs:
             failOnStdErr: false
             resourceGroupName: ${{ env.resource-group }}
             template: main.bicep
-            parameters: 'dev.bicepparam  clusterName=${{ env.clusterName }}'
+            parameters: 'clusterName=${{ env.clusterName }} nodeCount=${{ env.nodeCount }} nodeSize=${{ env.nodeSize }}'
 
         - name: RBAC Assignment
           uses: azure/cli@v1

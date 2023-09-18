@@ -35,7 +35,7 @@ jobs:
             failOnStdErr: false
             resourceGroupName: ${{ env.resource-group }}
             template: main.bicep
-            parameters: dev.bicepparam
+            parameters: 'dev.bicepparam  clusterName=${{ env.cluster-name }}'
             additionalArguments: --what-if
   
     bicep-deploy:

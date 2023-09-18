@@ -85,6 +85,106 @@ az provider register --namespace Microsoft.ExtendedLocation
 
 Installation takes 10-15 minutes to complete
 
-We can verify the installation by running the following command:
+Review the JSON response and verify the "provisioningState" is "Succeeded".
+
+![Alt text](image-2.png)
+
+You can also also verify the extension has been installed by running the following command:
 
 ```bash
+kubectl get sc  -o wide
+```
+
+![Alt text](image-3.png)
+
+acstor-azure-disk is the default storage class for Azure Container Storage.
+
+## Creating a storage pool
+
+Now that we have Azure Container Storage installed, we can create a storage pool. A storage pool is a logical grouping of storage resources that can be used to provision persistent volumes for containers. Each pool has its own set of storage resources, which can be scaled up or down independently of other pools in the same account. This allows you to easily manage your storage resources based on the needs of your applications.
+
+We'll create a storage pool using the following YAML manifest and use kubectl to apply it to the cluster:
+
+```yaml
+apiVersion: containerstorage.azure.com/v1alpha1
+kind: StoragePool
+metadata:
+  name: azuredisk
+  namespace: acstor
+spec:
+  poolType:
+    azureDisk: {}
+  resources:
+    requests: {"storage": 100Gi}
+```
+
+Let's take a look at the PVC that was created:
+
+![Alt text](image-4.png)
+
+## Creating a persistent volume claim
+
+Now that we have a storage pool, we can create a persistent volume claim (PVC) to use it. A PVC is a request for storage that can be used by a container. It is similar to a pod, but it does not have any containers running inside it. Instead, it is used as a storage resource for other pods.
+
+Create a PVC using the following YAML manifest and use kubectl to apply it to the cluster:
+
+```yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: azurediskpvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: acstor-azuredisk # replace with the name of your storage class if different
+  resources:
+    requests:
+      storage: 10Gi
+```
+
+![Alt text](image-5.png)
+
+Looking good! 😎
+
+Finally, let's create a pod that uses the PVC we just created. We'll use the following YAML manifest and use kubectl to apply it to the cluster:
+
+```yaml
+kind: Pod
+apiVersion: v1
+metadata:
+  name: fiopod
+spec:
+  nodeSelector:
+    acstor.azure.com/io-engine: acstor
+  volumes:
+    - name: azurediskpv
+      persistentVolumeClaim:
+        claimName: azurediskpvc
+  containers:
+    - name: fio
+      image: nixery.dev/shell/fio
+      args:
+        - sleep
+        - "1000000"
+      volumeMounts:
+        - mountPath: "/volume"
+          name: azurediskpv
+```
+
+Fio (Flexible I/O Tester) is a benchmarking and workload simulation. It supports many different types of I/O engines, including asynchronous I/O, mmap, and POSIX AIO. It also supports multiple threads and multiple files per thread.
+
+![Alt text](image-6.png)
+
+Beautiful! 😍
+
+![Alt text](image-8.png)
+
+We can also see the disk in the Azure portal under the cluster managed resource group:
+
+![Alt text](image-7.png)
+
+## Conclusion
+
+Azure Container Storage is a great solution for managing storage for container workloads. It provides a fully managed, cloud-native solution that integrates seamlessly with Kubernetes to enable automatic and dynamic provisioning of persistent volumes. By using Azure Container Storage, developers can focus on building and deploying containerized applications without worrying about the underlying storage infrastructure.
+
+I hope you found this blog post helpful! If you have any questions or feedback, please feel free to leave a comment below. I'd love to hear from you! 😊

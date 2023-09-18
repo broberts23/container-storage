@@ -6,8 +6,10 @@ param nodeSettings object
 resource aks 'Microsoft.ContainerService/managedClusters@2023-07-02-preview' = {
   name: clusterName
   location: location
+  identity: {
+    type: 'SystemAssigned'
+  }
   properties: {
-    enableRBAC: true
     dnsPrefix: clusterName
     agentPoolProfiles: [
       {

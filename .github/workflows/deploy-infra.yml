@@ -7,7 +7,7 @@ permissions:
   
 env:
     resource-group: myAksDemo # name of the Azure resource group
-    cluster-name: dev-myAKSCluster # name of the AKS cluster
+    cluster-name: dev-myAKSCluster-01 # name of the AKS cluster
   
 jobs:
     bicep-whatif:
@@ -68,7 +68,7 @@ jobs:
             failOnStdErr: false
             resourceGroupName: ${{ env.resource-group }}
             template: main.bicep
-            parameters: dev.bicepparam
+            parameters: 'dev.bicepparam  clusterName=${{ env.cluster-name }}'
 
         - name: RBAC Assignment
           uses: azure/cli@v1

@@ -49,7 +49,35 @@ https://github.com/broberts23/container-storage
 For simplicity we'll contain the code in a single main.bicep but split the parameters into a separate .bi file. This will allow us to easily change the parameters without having to modify the main file.
 
 ```bicep
+param location string
+param clusterName string
+param nodeSettings object
 
+@description('Create the AKS cluster')
+resource aks 'Microsoft.ContainerService/managedClusters@2023-07-02-preview' = {
+  name: clusterName
+  location: location
+  identity: {
+    type: 'SystemAssigned'
+  }
+  properties: {
+    dnsPrefix: clusterName
+    agentPoolProfiles: [
+      {
+        name: 'agentpool'
+        // the node pool label to associate the node pool with the correct IO engine for Azure Container Storage
+        nodeLabels: {
+          'acstor.azure.com/io-engine': 'acstor'
+        }
+        count: nodeSettings.nodeCount
+        vmSize: nodeSettings.nodeSize
+        mode: 'System'
+      }
+    ]
+  }
+}
+
+output controlPlaneFQDN string = aks.properties.fqdn
 ```
 
 To use Azure Container Storage with Azure managed disks, your AKS cluster should have a node pool of at least three general purpose VMs such as standard_d4s_v5 for the cluster nodes, each with a minimum of four virtual CPUs (vCPUs).

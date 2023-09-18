@@ -1,7 +1,5 @@
 using 'main.bicep'
 
-var prefix = 'dev-'
-
 @description ('Allowed deployment locations')
 @allowed([
   'australiaeast'
@@ -13,7 +11,7 @@ param location = 'australiaeast'
 @minLength(5)
 @maxLength(24)
 @description ('The name of the AKS cluster resoorces')
-param clusterName = '${prefix}myAKSCluster'
+param clusterName = ''
 
 // @description ('The version of Kubernetes to use')
 // @allowed([

@@ -7,7 +7,7 @@ permissions:
   
 env:
     resource-group: myAksDemo # name of the Azure resource group
-    cluster-name: dev-myAKSCluster-01 # name of the AKS cluster
+    cluster-name: dev-myAksCluster-01 # name of the AKS cluster
   
 jobs:
     bicep-whatif:
@@ -35,7 +35,7 @@ jobs:
             failOnStdErr: false
             resourceGroupName: ${{ env.resource-group }}
             template: main.bicep
-            parameters: 'clusterName=${{ env.cluster-name }} dev.bicepparam'
+            parameters: 'dev.bicepparam clusterName=${{ env.cluster-name }}'
             additionalArguments: --what-if
   
     bicep-deploy:

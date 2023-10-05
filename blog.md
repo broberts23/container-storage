@@ -79,7 +79,6 @@ resource aks 'Microsoft.ContainerService/managedClusters@2023-07-02-preview' = {
 }
 
 output controlPlaneFQDN string = aks.properties.fqdn
-
 ```
 
 I'll be deploying the custer and performing the RBAC assignment using GitHub Actions. You'll need to create a service principal and store the credentials in GitHub secrets. You'll also need to create a resource group. The workflow file is below:
@@ -97,7 +96,7 @@ permissions:
 env:
     resource-group: myAksDemo # name of the Azure resource group
     clusterName: dev-myAksCluster-01 # name of the AKS cluster
-    nodeCount: 3 # number of nodes in the cluster
+    nodeCount: 3 # number of nodes in the cluster - minimum of 3 for Azure Container Storage
     nodeSize: Standard_D4s_v5 # You must choose a VM type that supports Azure premium storage and a minimum of 4 vCPUs.
   
 jobs:
@@ -161,7 +160,7 @@ jobs:
             template: main.bicep
             parameters: 'clusterName=${{ env.clusterName }} nodeCount=${{ env.nodeCount }} nodeSize=${{ env.nodeSize }}'
 
-        # Assign the default AKS managed identity the role of Contributor on the managed resource group
+        # Assign the default AKS managed identity the role of Contributor on the Managed resource group
         - name: RBAC Assignment
           uses: azure/cli@v1
           with:
@@ -171,7 +170,7 @@ jobs:
               az role assignment create --assignee $AKS_MI_OBJECT_ID --role "Contributor" --resource-group "$AKS_NODE_RG"
   ```
 
-To use Azure Container Storage with Azure managed disks, your AKS cluster should have a node pool of at least three general purpose VMs such as standard_d4s_v5 for the cluster nodes, each with a minimum of four virtual CPUs (vCPUs).
+To use Azure Container Storage with Azure managed disks, your AKS cluster should have a node pool of *at least* three general purpose VMs such as standard_d4s_v5 for the cluster nodes, each with a minimum of four virtual CPUs (vCPUs).
 
 ## Connecting to the AKS cluster
 
@@ -216,11 +215,11 @@ kubectl get sc  -o wide
 
 ![Alt text](image-3.png)
 
-acstor-azure-disk is the default storage class for Azure Container Storage.
+**acstor**-azure-disk is the default storage class for Azure Container Storage.
 
 ## Creating a storage pool
 
-Now that we have Azure Container Storage installed, we can create a storage pool. A storage pool is a logical grouping of storage resources that can be used to provision persistent volumes for containers. Each pool has its own set of storage resources, which can be scaled up or down independently of other pools in the same account. This allows you to easily manage your storage resources based on the needs of your applications.
+Now that we have Azure Container Storage installed, we can create a storage pool. A storage pool is a logical grouping or abstraction of storage resources that can be used to provision persistent volumes for containers. Each pool has its own set of storage resources, which can be scaled up or down independently of other pools in the same account. This allows you to easily manage your storage resources based on the needs of your applications.
 
 We'll create a storage pool using the following YAML manifest and use kubectl to apply it to the cluster:
 
